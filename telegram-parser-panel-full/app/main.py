@@ -2,7 +2,7 @@ import os
 import asyncio
 import base64
 from typing import Optional, Dict
-from fastapi import FastAPI, Request, Depends, Form, Response
+from fastapi import FastAPI, Request, Depends, Form, Response, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select, insert
@@ -12,6 +12,7 @@ from .database import Base, engine, get_db
 from .models import Account, Member
 from .auth import build_client_from_account, start_login, finish_login
 from .parser import ensure_join, safe_parse_members
+from telethon.errors.rpcerrorlist import PhoneCodeExpiredError
 
 FLASH_KEY = "flash_message"
 
@@ -93,7 +94,11 @@ async def accounts_verify(
 
     client = await build_client_from_account(acc)
     try:
-        string_session = await finish_login(client, acc.phone, acc.phone_code_hash, code, password)
+        try:
+            string_session = await finish_login(client, acc.phone, acc.phone_code_hash, code, password)
+        except PhoneCodeExpiredError:
+            set_flash(response, "Код подтверждения истёк. Попробуйте отправить код заново.")
+            return RedirectResponse("/", 303)
     finally:
         await client.disconnect()
 
@@ -104,6 +109,20 @@ async def accounts_verify(
 
     set_flash(response, "Аккаунт успешно авторизован!")
     return RedirectResponse("/", 303)
+
+@app.post("/accounts/delete")
+async def accounts_delete(
+    account_id: int = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    acc = (await db.execute(select(Account).where(Account.id == account_id))).scalar_one_or_none()
+    if not acc:
+        raise HTTPException(status_code=404, detail="Аккаунт не найден.")
+    await db.delete(acc)
+    await db.commit()
+    # Можно добавить flash-сообщение, если используешь их
+    # set_flash(response, "Аккаунт удалён.")
+    return RedirectResponse("/", status_code=303)
 
 @app.post("/parse")
 async def parse(
