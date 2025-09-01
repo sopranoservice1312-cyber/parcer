@@ -1,5 +1,6 @@
 import os
 import asyncio
+import base64
 from typing import Optional, Dict
 from fastapi import FastAPI, Request, Depends, Form, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, PlainTextResponse
@@ -11,7 +12,23 @@ from .database import Base, engine, get_db
 from .models import Account, Member
 from .auth import build_client_from_account, start_login, finish_login
 from .parser import ensure_join, safe_parse_members
-from .utils import set_flash, pop_flash
+
+FLASH_KEY = "flash_message"
+
+def set_flash(response: Response, message: str):
+    # Кодируем строку в base64 для безопасного сохранения в cookie
+    encoded = base64.b64encode(message.encode("utf-8")).decode("ascii")
+    response.set_cookie(FLASH_KEY, encoded, max_age=30, httponly=False)
+
+def pop_flash(request: Request):
+    encoded = request.cookies.get(FLASH_KEY)
+    if encoded:
+        try:
+            # Декодируем обратно в строку
+            return base64.b64decode(encoded).decode("utf-8")
+        except Exception:
+            return None
+    return None
 
 app = FastAPI(title="Telegram Parser Panel")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
