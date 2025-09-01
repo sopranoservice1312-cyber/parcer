@@ -26,14 +26,24 @@
 
     <div class="mt-4">
       <h4 class="font-medium">Аккаунты</h4>
-      <ul class="text-sm list-disc ml-6">
-        {% for a in accounts %}
-          <li>
-            {{ a.phone }} — {% if a.is_ready %}<span class="text-emerald-700">готов</span>{% else %}<span class="text-amber-700">ожидает кода</span>{% endif %}
-          </li>
-        {% else %}
-          <li>Нет аккаунтов</li>
-        {% endfor %}
+<ul class="text-sm list-disc ml-6">
+  {% for a in accounts %}
+    <li>
+      {{ a.phone }} —
+      {% if a.is_ready %}
+        <span class="text-emerald-700">готов</span>
+      {% else %}
+        <span class="text-amber-700">ожидает кода</span>
+      {% endif %}
+      <form method="post" action="/accounts/delete" style="display:inline;">
+        <input type="hidden" name="account_id" value="{{ a.id }}">
+        <button type="submit" onclick="return confirm('Удалить аккаунт?');" class="text-red-600 hover:underline bg-transparent border-none p-0 m-0 ml-2 cursor-pointer">Удалить</button>
+      </form>
+    </li>
+  {% else %}
+    <li>Нет аккаунтов</li>
+  {% endfor %}
+</ul>
       </ul>
     </div>
   </div>
