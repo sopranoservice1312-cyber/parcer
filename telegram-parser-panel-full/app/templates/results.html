@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white rounded-2xl shadow p-5">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold">Результаты</h2>
+    <a href="/export.csv" class="px-3 py-2 rounded bg-slate-800 text-white text-sm">Скачать CSV</a>
+  </div>
+
+  {% if job %}
+  <div id="job" hx-get="/jobs/{{ job }}" hx-trigger="load, every 1s" hx-swap="innerHTML" class="text-sm text-slate-600 mt-2"></div>
+  {% endif %}
+
+  <div class="overflow-x-auto mt-4">
+    <table class="min-w-full text-sm">
+      <thead>
+        <tr class="bg-slate-100">
+          <th class="text-left p-2">tg_user_id</th>
+          <th class="text-left p-2">username</th>
+          <th class="text-left p-2">first_name</th>
+          <th class="text-left p-2">last_name</th>
+          <th class="text-left p-2">group_title</th>
+          <th class="text-left p-2">crawled_at</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in items %}
+        <tr class="border-b">
+          <td class="p-2">{{ m.tg_user_id }}</td>
+          <td class="p-2">{{ m.username or '' }}</td>
+          <td class="p-2">{{ m.first_name or '' }}</td>
+          <td class="p-2">{{ m.last_name or '' }}</td>
+          <td class="p-2">{{ m.group_title or '' }}</td>
+          <td class="p-2">{{ m.crawled_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td class="p-2" colspan="6">Данных пока нет.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

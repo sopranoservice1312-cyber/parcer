@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-white rounded-2xl shadow p-5">
+    <h2 class="text-lg font-semibold mb-3">1) Авторизация аккаунта</h2>
+
+    <form method="post" action="/accounts/start" class="space-y-2">
+      <div class="grid grid-cols-2 gap-2">
+        <input name="api_id" type="number" required placeholder="API ID" class="border rounded p-2">
+        <input name="api_hash" required placeholder="API HASH" class="border rounded p-2">
+      </div>
+      <input name="phone" required placeholder="Телефон (+380...) (включая код)" class="border rounded p-2 w-full">
+      <button class="px-4 py-2 rounded bg-blue-600 text-white">Отправить код</button>
+    </form>
+
+    {% if request.query_params.get('verify') %}
+    <hr class="my-4" />
+    <h3 class="font-medium">Ввод кода</h3>
+    <form method="post" action="/accounts/verify" class="space-y-2">
+      <input type="hidden" name="account_id" value="{{ request.query_params.get('verify') }}" />
+      <input name="code" placeholder="Код из Telegram" class="border rounded p-2 w-full">
+      <input name="password" placeholder="Пароль 2FA (если включён)" class="border rounded p-2 w-full">
+      <button class="px-4 py-2 rounded bg-emerald-600 text-white">Подтвердить</button>
+    </form>
+    {% endif %}
+
+    <div class="mt-4">
+      <h4 class="font-medium">Аккаунты</h4>
+      <ul class="text-sm list-disc ml-6">
+        {% for a in accounts %}
+          <li>
+            {{ a.phone }} — {% if a.is_ready %}<span class="text-emerald-700">готов</span>{% else %}<span class="text-amber-700">ожидает кода</span>{% endif %}
+          </li>
+        {% else %}
+          <li>Нет аккаунтов</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow p-5">
+    <h2 class="text-lg font-semibold mb-3">2) Парсинг группы</h2>
+
+    <form method="post" action="/parse" class="space-y-2">
+      <label class="block text-sm">Выбери аккаунт</label>
+      <select name="account_id" class="border rounded p-2 w-full">
+        {% for a in accounts %}
+          {% if a.is_ready %}
+            <option value="{{ a.id }}">{{ a.phone }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <input name="group" placeholder="@group или https://t.me/group" class="border rounded p-2 w-full">
+      <button class="px-4 py-2 rounded bg-indigo-600 text-white">Старт парсинга</button>
+    </form>
+
+    <p class="text-sm text-slate-500 mt-2">Прогресс в реальном времени — на странице результатов.</p>
+  </div>
+</div>
+{% endblock %}

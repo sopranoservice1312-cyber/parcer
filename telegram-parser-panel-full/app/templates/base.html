@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ request.app.title }}</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">Telegram Parser Panel</h1>
+
+    {% if flash %}
+      <div class="mb-4 p-3 rounded-lg bg-emerald-100 text-emerald-900">{{ flash }}</div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <p class="text-xs text-slate-500 mt-10">⚠️ В публичных группах без прав админа Telegram отдаёт только часть участников (активных недавно). Для полного списка используйте аккаунт-админ группы.</p>
+  </div>
+</body>
+</html>
